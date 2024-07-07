@@ -1,8 +1,10 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
-import { DynamoDB } from 'aws-sdk';
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { nanoid } from 'nanoid';
 
-const dynamoDB = new DynamoDB.DocumentClient();
+const client = new DynamoDBClient({});
+const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.TABLE_NAME!;
 
 export const handler: APIGatewayProxyHandler = async (event) => {
@@ -15,6 +17,10 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     if (!text || !filepath) {
       return {
         statusCode: 400,
+        headers: {
+          'Access-Control-Allow-Origin': 'http://localhost:3000',
+          'Access-Control-Allow-Credentials': 'true',
+        },
         body: JSON.stringify({ error: 'Missing required fields: text and filepath' }),
       };
     }
@@ -31,10 +37,12 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     };
 
     // Write the item to DynamoDB
-    await dynamoDB.put({
+    const command = new PutCommand({
       TableName: TABLE_NAME,
       Item: item,
-    }).promise();
+    });
+    
+    await docClient.send(command);
 
     return {
       statusCode: 200,

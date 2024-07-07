@@ -7,6 +7,8 @@ import * as apigateway from 'aws-cdk-lib/aws-apigateway';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
 import * as path from 'path';
 import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import { DynamoEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
@@ -77,6 +79,7 @@ export class CdkNuStack extends cdk.Stack {
       tableName: 'fovus_table',
       partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+      stream: dynamodb.StreamViewType.NEW_IMAGE,
       removalPolicy: cdk.RemovalPolicy.DESTROY, // NOTE: Use with caution in production
     });
     // Add a GSI for efficient queries by filepath
@@ -113,6 +116,46 @@ export class CdkNuStack extends cdk.Stack {
       }],
     });
 
+    const launchTemplate = new ec2.LaunchTemplate(this, 'EC2LaunchTemplate', {
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
+      machineImage: ec2.MachineImage.latestAmazonLinux2(),
+      userData: ec2.UserData.custom(`
+        #!/bin/bash
+        echo "Running your script here"
+        # Add your script commands here
+      `),
+    });
+
+    // Ensure the launch template ID is available
+    const launchTemplateId = launchTemplate.launchTemplateId;
+
+    // Throw an error if the launch template ID is undefined
+    if (!launchTemplateId) {
+      throw new Error('Launch Template ID is undefined');
+    }
+
+
+    // 3. Create Lambda function to process DynamoDB events and launch EC2
+    const ec2LauncherFunction = new lambda.Function(this, 'EC2LauncherFunction', {
+      runtime: lambda.Runtime.NODEJS_20_X,
+      handler: 'index.handler',
+      code: lambda.Code.fromAsset('lambda/ec2-launcher'),
+      environment: {
+        LAUNCH_TEMPLATE_ID: launchTemplate.launchTemplateId,
+      },
+    });
+
+    // 4. Add DynamoDB Stream as event source for Lambda
+    ec2LauncherFunction.addEventSource(new DynamoEventSource(fileTable, {
+      startingPosition: lambda.StartingPosition.LATEST,
+    }));
+
+    // 5. Grant permissions to Lambda to launch EC2 instances
+    ec2LauncherFunction.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['ec2:RunInstances'],
+      resources: ['*'],
+    }));
+
     // Output the API URL
     new cdk.CfnOutput(this, 'ApiUrl', {
       value: api.url,
@@ -128,6 +171,9 @@ export class CdkNuStack extends cdk.Stack {
       value: `${api.url}write-to-db`,
       description: 'API Endpoint for Writing to DB',
     });
+
+    // Output the table name
+    new cdk.CfnOutput(this, 'TableName', { value: fileTable.tableName });
 
   }
 }
