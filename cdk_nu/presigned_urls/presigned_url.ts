@@ -1,7 +1,10 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
-import { S3 } from 'aws-sdk';
+//import { S3 } from 'aws-sdk';
+import { S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
 
-const s3 = new S3();
+const s3Client = new S3Client({});
 const BUCKET_NAME = process.env.BUCKET_NAME!;
 
 export const handler: APIGatewayProxyHandler = async (event) => {
@@ -23,7 +26,10 @@ export const handler: APIGatewayProxyHandler = async (event) => {
   };
 
   try {
-    const signedUrl = await s3.getSignedUrlPromise('putObject', params);
+    //const signedUrl = await s3.getSignedUrlPromise('putObject', params);
+    const command = new PutObjectCommand({ Bucket: "your-bucket", Key: "your-key" });
+    const signedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
+
     return {
       statusCode: 200,
       headers: {

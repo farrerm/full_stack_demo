@@ -18,6 +18,27 @@ export class CdkNuStack extends cdk.Stack {
 
     // The code that defines your stack goes here
 
+    const vpc = ec2.Vpc.fromLookup(this, 'DefaultVPC', { isDefault: true });
+
+    const securityGroup = new ec2.SecurityGroup(this, 'EC2SecurityGroup', {
+      vpc: vpc,
+      allowAllOutbound: true,
+      description: 'Security group for EC2 instance',
+    });
+
+    securityGroup.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.tcp(22),
+      'Allow SSH access'
+    );
+
+    // Allow ICMP (ping)
+    securityGroup.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.icmpPing(),
+      'Allow ICMP ping'
+    );
+
     // Create S3 bucket
     const bucket = new s3.Bucket(this, 'nu_bucket', {
       bucketName: 'nuufovus', // Optional: Specify a unique name
@@ -88,6 +109,13 @@ export class CdkNuStack extends cdk.Stack {
       partitionKey: { name: 'filepath', type: dynamodb.AttributeType.STRING },
     });
 
+    // Create DynamoDB table for completion signals
+    const completionTable = new dynamodb.Table(this, 'CompletionTable', {
+      partitionKey: { name: 'InstanceId', type: dynamodb.AttributeType.STRING },
+      removalPolicy: cdk.RemovalPolicy.DESTROY, // Use with caution, only for non-production,
+      stream: dynamodb.StreamViewType.NEW_IMAGE, // Enable streams
+    });
+
     // Create the new Lambda function for writing to DynamoDB
     const writeToDbLambda = new NodejsFunction(this, 'WriteToDbLambda', {
       runtime: lambda.Runtime.NODEJS_20_X,
@@ -104,6 +132,7 @@ export class CdkNuStack extends cdk.Stack {
     // Create a new resource and method for writing to DynamoDB
     const writeToDbResource = api.root.addResource('write_to_db');
     const writeToDbIntegration = new apigateway.LambdaIntegration(writeToDbLambda);
+
     writeToDbResource.addMethod('POST', writeToDbIntegration, {
       methodResponses: [{
         statusCode: '200',
@@ -116,13 +145,108 @@ export class CdkNuStack extends cdk.Stack {
       }],
     });
 
+    // Create IAM role for EC2 instance 
+    //const ec2Role = new iam.Role(this, 'EC2Role', {
+   //   assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
+  //  });
+
+  //  ec2Role.addToPolicy(new iam.PolicyStatement({
+  //    actions: ['ec2:TerminateInstances', 'ec2:DescribeInstances'],
+  //    resources: ['*'],
+  //  }));// Grant EC2 instance permissions to write to DynamoDB
+    const ec2Role = new iam.Role(this, 'EC2Role', {
+      assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
+    });
+
+    ec2Role.addToPolicy(new iam.PolicyStatement({
+      actions: ['dynamodb:PutItem'],
+      resources: [completionTable.tableArn],
+    }));// Create instance conprofile
+
+    // Also add permissions to describe EC2 tags
+    ec2Role.addToPolicy(new iam.PolicyStatement({
+      actions: [
+        'ec2:DescribeTags', 
+        'ec2:DescribeInstances',
+        'ec2:DescribeInstanceAttribute',
+        'ec2:DescribeLaunchTemplateVersions',  // Add this line
+      ],
+      resources: ['*'],
+    }));
+
+    ec2Role.addToPolicy(new iam.PolicyStatement({
+      actions: [
+        'logs:CreateLogGroup',
+        'logs:CreateLogStream',
+        'logs:PutLogEvents',
+        'logs:DescribeLogStreams'
+      ],
+      resources: ['arn:aws:logs:*:*:*'],
+    }));
+    
+    const instanceProfile = new iam.InstanceProfile(this, 'EC2InstanceProfile', {
+      role: ec2Role,
+    });
+
     const launchTemplate = new ec2.LaunchTemplate(this, 'EC2LaunchTemplate', {
       instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
       machineImage: ec2.MachineImage.latestAmazonLinux2(),
+      role: ec2Role,
+      keyName: 'instance_key', // Add this line
+      securityGroup: securityGroup,
       userData: ec2.UserData.custom(`
         #!/bin/bash
-        echo "Running your script here"
-        # Add your script commands here
+        
+        set -x
+
+        exec > /var/log/user-data.log 2>&1
+
+        echo "Starting user data script execution"
+
+        # Set the AWS region
+        export AWS_DEFAULT_REGION=us-east-1
+        echo "AWS_DEFAULT_REGION set to $AWS_DEFAULT_REGION"
+
+        # Check AWS CLI installation
+        if ! command -v aws &> /dev/null; then
+          echo "Installing AWS CLI"
+          yum install -y aws-cli
+        else
+          echo "AWS CLI is already installed"
+        fi
+
+        echo "AWS CLI version:"
+        aws --version
+
+        echo "Retrieving instance ID"
+        INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+        echo "Instance ID: $INSTANCE_ID"
+
+        echo "Retrieving Completion Table name from instance tags"
+        COMPLETION_TABLE_NAME=$(aws ec2 describe-tags --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=CompletionTableName" --query "Tags[0].Value" --output text)
+        echo "Completion Table name: $COMPLETION_TABLE_NAME"
+
+        if [ -z "$COMPLETION_TABLE_NAME" ]; then
+          echo "Error: CompletionTableName tag not found on the instance"
+          exit 1
+        fi
+
+        echo "Writing to DynamoDB"
+        aws dynamodb put-item \
+          --table-name $COMPLETION_TABLE_NAME \
+          --item '{"InstanceId": {"S": "'$INSTANCE_ID'"}}' \
+          --region $AWS_DEFAULT_REGION
+
+        # Log the result of the DynamoDB write
+        if [ $? -eq 0 ]; then
+          echo "Successfully wrote to Completion Table"
+        else
+          echo "Failed to write to Completion Table"
+          echo "Error code: $?"
+        fi
+
+        echo "User data script completed"
+
       `),
     });
 
@@ -134,15 +258,18 @@ export class CdkNuStack extends cdk.Stack {
       throw new Error('Launch Template ID is undefined');
     }
 
-
     // 3. Create Lambda function to process DynamoDB events and launch EC2
-    const ec2LauncherFunction = new lambda.Function(this, 'EC2LauncherFunction', {
+    const ec2LauncherFunction = new NodejsFunction(this, 'EC2LauncherFunction', {
+      entry: path.join(__dirname, '../ec2_launcher/index.ts'),
+      handler: 'handler',
       runtime: lambda.Runtime.NODEJS_20_X,
-      handler: 'index.handler',
-      code: lambda.Code.fromAsset('lambda/ec2-launcher'),
       environment: {
-        LAUNCH_TEMPLATE_ID: launchTemplate.launchTemplateId,
+        LAUNCH_TEMPLATE_ID: launchTemplateId,
+        INSTANCE_PROFILE_ARN: instanceProfile.instanceProfileArn,
+        COMPLETION_TABLE_NAME: completionTable.tableName,
+        SUBNET_ID: vpc.publicSubnets[0].subnetId, // Use a public subnet
       },
+      //timeout: cdk.Duration.minutes(16),  // Set timeout to 16 minutes
     });
 
     // 4. Add DynamoDB Stream as event source for Lambda
@@ -152,9 +279,38 @@ export class CdkNuStack extends cdk.Stack {
 
     // 5. Grant permissions to Lambda to launch EC2 instances
     ec2LauncherFunction.addToRolePolicy(new iam.PolicyStatement({
-      actions: ['ec2:RunInstances'],
+      actions: [
+        'ec2:RunInstances',
+        'ec2:CreateTags',
+        'ec2:TerminateInstances',
+          // Add this line'
+        'iam:PassRole'
+      ],
       resources: ['*'],
     }));
+
+    // Create Lambda function to terminate EC2
+    const ec2TerminatorFunction = new NodejsFunction(this, 'EC2TerminatorFunction', {
+      entry: path.join(__dirname, '../terminate_ec2/index.ts'),
+      handler: 'handler',
+      runtime: lambda.Runtime.NODEJS_20_X,
+      timeout: cdk.Duration.minutes(3),
+    });
+
+    // Add DynamoDB Stream as event source for EC2 Terminator Lambda
+    ec2TerminatorFunction.addEventSource(new DynamoEventSource(completionTable, {
+      startingPosition: lambda.StartingPosition.LATEST,
+    }));
+
+    // Grant permissions to Lambda functions
+    ec2TerminatorFunction.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['ec2:TerminateInstances'],
+      resources: ['*'],
+    }));
+
+    
+
+
 
     // Output the API URL
     new cdk.CfnOutput(this, 'ApiUrl', {
@@ -174,6 +330,11 @@ export class CdkNuStack extends cdk.Stack {
 
     // Output the table name
     new cdk.CfnOutput(this, 'TableName', { value: fileTable.tableName });
+
+    new cdk.CfnOutput(this, 'SecurityGroupId', {
+      value: securityGroup.securityGroupId,
+      description: 'Security Group ID',
+    });
 
   }
 }
