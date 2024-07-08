@@ -26,7 +26,7 @@ The code for the actual Lambda itself is in a file called index.ts for each Lamb
 
 I will describe the flow.
 
-The frontend code is in cdk_nu/frontend.  It includes form that allows text and file submission.  It is running ReactJS.
+The frontend code is in cdk_nu/frontend.  It includes a form that allows text and file submission.  It is running ReactJS.
 
 <img width="1320" alt="Screen Shot 2024-07-07 at 10 52 52 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/5016dec7-6bc3-485c-bdab-564808d2de00">
 
