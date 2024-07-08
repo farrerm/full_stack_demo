@@ -183,6 +183,31 @@ export class CdkNuStack extends cdk.Stack {
       ],
       resources: ['arn:aws:logs:*:*:*'],
     }));
+
+    // Add S3 read permissions to the role
+    ec2Role.addToPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        's3:GetObject',
+        's3:ListBucket',
+        's3:PutObject'
+      ],
+      resources: [
+        'arn:aws:s3:::nuufovus',
+        'arn:aws:s3:::nuufovus/*'
+      ],
+    }));
+
+    ec2Role.addToPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        'dynamodb:PutItem',
+        'dynamodb:GetItem',// Include this if your script also needs to write to DynamoDB
+        'dynamodb:UpdateItem',  // Include if needed
+        'dynamodb:DeleteItem'  // Include if needed
+      ],
+      resources: ['arn:aws:dynamodb:*:*:table/fovus_table'],
+    }));
     
     const instanceProfile = new iam.InstanceProfile(this, 'EC2InstanceProfile', {
       role: ec2Role,
@@ -205,18 +230,17 @@ export class CdkNuStack extends cdk.Stack {
 
         # Set the AWS region
         export AWS_DEFAULT_REGION=us-east-1
-        echo "AWS_DEFAULT_REGION set to $AWS_DEFAULT_REGION"
+        echo "AWS_DEFAULT_REGION set to $AWS_DEFAULT_REGION"# Install required packages
 
-        # Check AWS CLI installation
-        if ! command -v aws &> /dev/null; then
-          echo "Installing AWS CLI"
-          yum install -y aws-cli
-        else
-          echo "AWS CLI is already installed"
-        fi
+        sudo yum update -y
+        sudo yum install -y python3 python3-pip
+        pip3 install boto3
 
-        echo "AWS CLI version:"
-        aws --version
+        # Download the script from S3
+        aws s3 cp s3://nuufovus/s3_script.py ./s3_script.py
+
+        # Execute the script
+        python3 s3_script.py
 
         echo "Retrieving instance ID"
         INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
@@ -307,11 +331,7 @@ export class CdkNuStack extends cdk.Stack {
       actions: ['ec2:TerminateInstances'],
       resources: ['*'],
     }));
-
-    
-
-
-
+  
     // Output the API URL
     new cdk.CfnOutput(this, 'ApiUrl', {
       value: api.url,
