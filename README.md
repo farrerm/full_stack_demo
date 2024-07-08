@@ -15,8 +15,11 @@ Frontend code has its own folder, cdk_nu/frontend/.  It is a ReactJS project tha
 Each Lambda has its own folder with a descriptive name.  They are:
 
 cdk_nu/ec2_launcher
+
 cdk_nu/presigned_urls
+
 cdk_nu/terminate_ec2
+
 cdk_nu/write_to_db
 
 The code for the actual Lambda itself is in a file called index.ts for each Lambda, i.e. cdk_nu/ec2_launcher/index.ts.
