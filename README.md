@@ -34,7 +34,7 @@ The first problem was how to obtain AWS credentials the correct way.  For this, 
 
 When the record is written to Dynamo, this triggers the ec2_launcher lambda.  The ec2 is provided with a script that works as follows:
 
-1. The ec2 downloads a Python script that was previous loaded into S3.  This script is called S3_script.py.
+1. The ec2 downloads a Python script that was previous loaded into S3.  This script is called s3_script.py.
 
 2. Based on the script, a new modified version of the original file is written to S3, and a new entry is inserted into DynamoDB (also based on the original data).  To prevent an infinite regress of Lambdas, we add an additional item to the Table, which tells us whether the data was processed already or not.  Only unprocessed data will spin up the ec2.
 
