@@ -46,9 +46,7 @@ Here are some more screenshots showing the flow of data:
 <img width="1442" alt="Screen Shot 2024-07-07 at 11 42 35 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/52ef1600-2af6-45b7-b106-41b478f48f3b">
 
 Shot of console showing successful write to S3 and DynamoDB.
-
-
-
+&nbsp;
 
 <img width="1461" alt="Screen Shot 2024-07-07 at 11 43 07 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/748fef26-3e5f-4d6d-9ef5-26d480f862e9">
 
