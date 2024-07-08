@@ -75,7 +75,7 @@ Following execution, ec2 instance writes data to DynamoDB Completion Table and i
 
 For local installation and testing, keep in mind this project was developed using my own AWS infrastructure.  I have not tested its portability by running it on other infrastructure.  However, since all infra is created programatially using the CDK, I see no reason why, in principle, it should not be portable.
 
-Nevertheless, I would generally describe project dependencies as follows:  
+I would generally describe project dependencies as follows:  
 cdk stack: node.js and TypeScript.  
 frontend: ReactJS  
 Lambda folders: node.js and TypeScript.      
