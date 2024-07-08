@@ -73,13 +73,12 @@ After execution, DynamoDB table fovus_table has 2 entries, as expected.
 Following execution, ec2 instance writes data to DynamoDB Completion Table and is terminated by Lambda function.
 <br><br>
 
+For local installation and testing, keep in mind that certain values such as table names are hardcode, and would need to be replaced as appropriate.  This project was written to run on my own AWS infrastructure, and I have not tested its portability by running it on other infrastructure.
 
-
-For local installation, I am not sure of the steps.  You would need to install various aws libraries.  You would need to install reources for the front end.  The Lambdas all use TypeScript.  Each one is structured as its own TypeScript project.  However, it turns out that only the relevant 'index.ts' file is used by the Lambda.  Regardless, it was nice to embed these in their own TypeScript projects for development.
-
-Certain values such as table names are hardcode, and would need to be replaced as appropriate.
-
-Importantly, none of this will work without the correct AWS permissions.
+Nevertheless, I would generally describe project dependencies as follows:
+cdk stack: node.js and TypeScript.
+frontend: ReactJS
+Lambda folders: node.js and TypeScript.  
 
 For sources, I made extensive use of Google, Stack Overflow and AWS documentation.
 
