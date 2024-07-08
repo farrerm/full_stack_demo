@@ -73,7 +73,7 @@ After execution, DynamoDB table fovus_table has 2 entries, as expected.
 Following execution, ec2 instance writes data to DynamoDB Completion Table and is terminated by Lambda function.
 <br><br>
 
-For local installation and testing, keep in mind that certain values such as table names are hardcode, and would need to be replaced as appropriate.  This project was written to run on my own AWS infrastructure, and I have not tested its portability by running it on other infrastructure.
+For local installation and testing, keep in mind this project was developed using my own AWS infrastructure.  I have not tested its portability by running it on other infrastructure.  However, since all infra is created programatially using the CDK, I see no reason why, in principle, it should not be portable.
 
 Nevertheless, I would generally describe project dependencies as follows:  
 cdk stack: node.js and TypeScript.  
