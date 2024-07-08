@@ -42,7 +42,7 @@ When the record is written to Dynamo, this triggers the ec2_launcher lambda.  Th
 
 I will try and provide screenshots, time permitting.
 
-For local installation, I am not sure of the steps.  You would need to install various aws libraries.  You would need to install reources for the front end.  The Lambdas all use TypeScript.  Each one is structured as its own TypeScript project.  
+For local installation, I am not sure of the steps.  You would need to install various aws libraries.  You would need to install reources for the front end.  The Lambdas all use TypeScript.  Each one is structured as its own TypeScript project.  However, it turns out that only the relevant 'index.ts' file is used by the Lambda.  Regardless, it was nice to embed these in their own TypeScript projects for development.
 
 For sources, I made extensive use of Google, Stack Overflow and AWS documentation.
 
