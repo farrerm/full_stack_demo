@@ -51,7 +51,7 @@ Shot of console showing successful write to S3 and DynamoDB.
 <img width="1461" alt="Screen Shot 2024-07-07 at 11 43 07 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/748fef26-3e5f-4d6d-9ef5-26d480f862e9">
 
 Sucessful write to DynamoDB of unprocessed data spins up a new ec2 instance.
-
+<br><br>
 
 
 
