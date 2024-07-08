@@ -47,17 +47,21 @@ Here are some more screenshots showing the flow of data:
 
 Shot of console showing successful write to S3 and DynamoDB.
 
+
 <img width="1461" alt="Screen Shot 2024-07-07 at 11 43 07 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/748fef26-3e5f-4d6d-9ef5-26d480f862e9">
 
 Sucessful write to DynamoDB of unprocessed data spins up a new ec2 instance.
+
 
 <img width="1379" alt="Screen Shot 2024-07-07 at 11 44 58 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/36b86a9c-b70d-4508-8e10-af1373de4749">
 
 Before executing, in S3 there was only s3_script.py.  After execution there are 2 additional entries as expected.
 
+
 <img width="1309" alt="Screen Shot 2024-07-07 at 11 44 37 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/7c27da40-9dec-4b11-b97b-b099ac300929">
 
 After execution, DynamoDB table fovus_table has 2 entries, as expected.
+
 
 <img width="1491" alt="Screen Shot 2024-07-07 at 11 43 57 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/bf973259-bc51-42ae-a47e-d8b2fb8cd413">
 
@@ -65,6 +69,8 @@ Following execution, ec2 instance writes data to DynamoDB Completion Table and i
 
 
 For local installation, I am not sure of the steps.  You would need to install various aws libraries.  You would need to install reources for the front end.  The Lambdas all use TypeScript.  Each one is structured as its own TypeScript project.  However, it turns out that only the relevant 'index.ts' file is used by the Lambda.  Regardless, it was nice to embed these in their own TypeScript projects for development.
+
+Certain values such as table names are hardcode, and would need to be replaced as appropriate.
 
 Importantly, none of this will work without the correct AWS permissions.
 
