@@ -55,7 +55,7 @@ Sucessful write to DynamoDB of unprocessed data spins up a new ec2 instance.
 
 <img width="1664" alt="Screen Shot 2024-07-07 at 11 32 00 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/c3159fb2-8b70-4a9a-8f23-77066fbb0c7a">
 
-Here, on a previous submission, we paused ec2 termination so we could examine the ec2 logs.  In this case, we see evidence that the python script is downloaded from s3 and executed successfully.
+Here, on a previous run, we paused ec2 termination so we could examine the ec2 logs.  In this case, we see evidence that the python script is downloaded from s3 and executed successfully.
 <br><br>
 
 <img width="1379" alt="Screen Shot 2024-07-07 at 11 44 58 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/36b86a9c-b70d-4508-8e10-af1373de4749">
