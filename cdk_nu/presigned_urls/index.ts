@@ -1,7 +1,5 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
-//import { S3 } from 'aws-sdk';
 import { S3Client } from "@aws-sdk/client-s3";
-//import { S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 
@@ -20,7 +18,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     return {
       statusCode: 400,
       headers: {
-        'Access-Control-Allow-Origin': allowedOrigin, // Restrict this in production
+        'Access-Control-Allow-Origin': allowedOrigin,
         'Access-Control-Allow-Credentials': 'true',
       },
       body: JSON.stringify({ error: 'fileName and fileType are required query parameters' }),
@@ -38,7 +36,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     return {
       statusCode: 200,
       headers: {
-        'Access-Control-Allow-Origin': allowedOrigin, // Update this for production
+        'Access-Control-Allow-Origin': allowedOrigin, 
         'Access-Control-Allow-Credentials': 'true',
       },
       body: JSON.stringify({ signedUrl }),
@@ -48,7 +46,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     return {
       statusCode: 500,
       headers: {
-        'Access-Control-Allow-Origin': allowedOrigin, // Restrict this in production
+        'Access-Control-Allow-Origin': allowedOrigin, 
         'Access-Control-Allow-Credentials': 'true',
       },
       body: JSON.stringify({ error: 'Failed to generate presigned URL' }),

@@ -10,13 +10,9 @@ import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
 import { DynamoEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
-
 export class CdkNuStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
-
-    // The code that defines your stack goes here
 
     const vpc = ec2.Vpc.fromLookup(this, 'DefaultVPC', { isDefault: true });
 
@@ -62,10 +58,6 @@ export class CdkNuStack extends cdk.Stack {
         BUCKET_NAME: bucket.bucketName,
         ALLOWED_ORIGIN: 'http://localhost:3000', // or your production frontend URL
       },
-      //bundling: {
-     //   minify: true,
-     //   externalModules: ['aws-sdk'],
-     // },
     });
     
     // Grant the Lambda function permission to generate presigned URLs
@@ -145,15 +137,6 @@ export class CdkNuStack extends cdk.Stack {
       }],
     });
 
-    // Create IAM role for EC2 instance 
-    //const ec2Role = new iam.Role(this, 'EC2Role', {
-   //   assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
-  //  });
-
-  //  ec2Role.addToPolicy(new iam.PolicyStatement({
-  //    actions: ['ec2:TerminateInstances', 'ec2:DescribeInstances'],
-  //    resources: ['*'],
-  //  }));// Grant EC2 instance permissions to write to DynamoDB
     const ec2Role = new iam.Role(this, 'EC2Role', {
       assumedBy: new iam.ServicePrincipal('ec2.amazonaws.com'),
     });
@@ -237,7 +220,7 @@ export class CdkNuStack extends cdk.Stack {
 
         # Downgrade urllib3 to a compatible version
         pip3 install urllib3==1.26.15
-        
+
         pip3 install boto3 requests
 
         # Get the instance ID
@@ -303,9 +286,8 @@ export class CdkNuStack extends cdk.Stack {
         LAUNCH_TEMPLATE_ID: launchTemplateId,
         INSTANCE_PROFILE_ARN: instanceProfile.instanceProfileArn,
         COMPLETION_TABLE_NAME: completionTable.tableName,
-        SUBNET_ID: vpc.publicSubnets[0].subnetId, // Use a public subnet
+        SUBNET_ID: vpc.publicSubnets[0].subnetId, 
       },
-      //timeout: cdk.Duration.minutes(16),  // Set timeout to 16 minutes
     });
 
     // 4. Add DynamoDB Stream as event source for Lambda

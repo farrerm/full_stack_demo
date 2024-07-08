@@ -7,10 +7,8 @@ ec2 = boto3.client('ec2')
 dynamodb = boto3.resource('dynamodb')
 s3 = boto3.client('s3')
 
-# Configuration (you may want to pass these as environment variables)
 FILE_TABLE_NAME = 'fovus_table'
 S3_BUCKET_NAME = 'nuufovus'
-#FILE_INDEX = 'BOzYHkeCsXHbSZ6k4SRI4'  # The key to retrieve the input file from DynamoDB
 
 def get_instance_id():
     # Use EC2 instance metadata to get the instance ID
@@ -41,10 +39,8 @@ def main():
 
     file_table = dynamodb.Table(FILE_TABLE_NAME)
 
-  
     print(f"Attempting to get item with index {file_index} from table {FILE_TABLE_NAME}")
   
-    # 1. Download an arbitrary entry from the FileTable
     response = file_table.get_item(Key={'id': file_index})
     file_entry = response['Item']
     s3_filepath = file_entry['filepath']

@@ -8,9 +8,9 @@ const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.TABLE_NAME!;
 
 export const handler: APIGatewayProxyHandler = async (event) => {
-  // TODO: Implement the logic to write to DynamoDB
+  
   try {
-    // Parse the incoming request body
+   
     const body = JSON.parse(event.body || '{}');
     const { text, filepath } = body;
 
@@ -34,7 +34,6 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       text,
       filepath,
       status: 'pending'
-      //timestamp: new Date().toISOString(),
     };
 
     // Write the item to DynamoDB
