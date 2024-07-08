@@ -30,7 +30,7 @@ The frontend code is in cdk_nu/frontend.  It includes a form that allows text an
 
 <img width="1320" alt="Screen Shot 2024-07-07 at 10 52 52 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/5016dec7-6bc3-485c-bdab-564808d2de00">
 
-The first problem was how to obtain AWS credentials the correct way.  For this, I used an API Gateway and a Lambda, presigned_urls/index.ts. When the frontend receives data it wants to write, the Lambda is invoked and a presigned url is returned.  This allows the frontend to write the file directly to S3.  As well, the file contents and S3 path are passed to the API Gateway, which invokes the Lambda write_to_db.  After this step, the file is written to S3 and the text is written to DynamoDB.
+The first problem was how to obtain AWS credentials the correct way.  For this, I used an API Gateway and a Lambda, presigned_urls/index.ts. When the frontend receives data it wants to write, the Lambda is invoked and a presigned url is returned.  This allows the frontend to write the file directly to S3.  As well, the file contents and S3 path are passed to the API Gateway, which invokes the Lambda write_to_db.  After this step, the file is written to S3 and the text and s3 file path are written to DynamoDB.
 
 When the record is written to Dynamo, this triggers the ec2_launcher lambda.  The ec2 is provided with a script that works as follows:
 
