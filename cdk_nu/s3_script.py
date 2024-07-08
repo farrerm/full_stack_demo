@@ -3,21 +3,49 @@ import os
 from urllib.parse import urlparse
 
 # Initialize AWS clients
+ec2 = boto3.client('ec2')
 dynamodb = boto3.resource('dynamodb')
 s3 = boto3.client('s3')
 
 # Configuration (you may want to pass these as environment variables)
 FILE_TABLE_NAME = 'fovus_table'
 S3_BUCKET_NAME = 'nuufovus'
-FILE_INDEX = 'BOzYHkeCsXHbSZ6k4SRI4'  # The key to retrieve the input file from DynamoDB
+#FILE_INDEX = 'BOzYHkeCsXHbSZ6k4SRI4'  # The key to retrieve the input file from DynamoDB
+
+def get_instance_id():
+    # Use EC2 instance metadata to get the instance ID
+    import requests
+    return requests.get('http://169.254.169.254/latest/meta-data/instance-id').text
+
+def get_file_table_item_index(instance_id):
+    response = ec2.describe_tags(
+        Filters=[
+            {'Name': 'resource-id', 'Values': [instance_id]},
+            {'Name': 'key', 'Values': ['FileTableItemIndex']}
+        ]
+    )
+    if response['Tags']:
+        return response['Tags'][0]['Value']
+    else:
+        raise ValueError("FileTableItemIndex tag not found")
 
 def main():
+
+    # Get the instance ID
+    instance_id = get_instance_id()
+    print(f"Instance ID: {instance_id}")
+
+    # Get the FileTable item index from the instance tag
+    file_index = get_file_table_item_index(instance_id)
+    print(f"FileTable Item Index: {file_index}")
+
     file_table = dynamodb.Table(FILE_TABLE_NAME)
 
-    print(f"Attempting to get item with index {FILE_INDEX} from table {FILE_TABLE_NAME}")
+  
+    print(f"Attempting to get item with index {file_index} from table {FILE_TABLE_NAME}")
   
     # 1. Download an arbitrary entry from the FileTable
-    response = file_table.get_item(Key={'id': FILE_INDEX})
+    response = file_table.get_item(Key={'id': file_index})
     file_entry = response['Item']
     s3_filepath = file_entry['filepath']
 
@@ -55,9 +83,10 @@ def main():
     new_s3_filepath = f"s3://{S3_BUCKET_NAME}/{new_key}"
     file_table.put_item(
         Item={
-            'id': f"modified_{FILE_INDEX}",
+            'id': f"modified_{file_index}",
             'filepath': new_s3_filepath,
-            'text': modified_content
+            'text': modified_content,
+            'status': 'finished'  # This is the new attribute
         }
     )
 

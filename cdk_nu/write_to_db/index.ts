@@ -33,6 +33,7 @@ export const handler: APIGatewayProxyHandler = async (event) => {
       id,
       text,
       filepath,
+      status: 'pending'
       //timestamp: new Date().toISOString(),
     };
 

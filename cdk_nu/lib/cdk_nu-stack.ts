@@ -234,10 +234,22 @@ export class CdkNuStack extends cdk.Stack {
 
         sudo yum update -y
         sudo yum install -y python3 python3-pip
-        pip3 install boto3
+
+        # Downgrade urllib3 to a compatible version
+        pip3 install urllib3==1.26.15
+        
+        pip3 install boto3 requests
+
+        # Get the instance ID
+        INSTANCE_ID=$(curl -s http://169.254.169.254/latest/meta-data/instance-id)
+        echo "Instance ID: $INSTANCE_ID"
 
         # Download the script from S3
         aws s3 cp s3://nuufovus/s3_script.py ./s3_script.py
+
+       # Get the FileTable item index from the instance tag
+        FILE_TABLE_ITEM_INDEX=$(aws ec2 describe-tags --filters "Name=resource-id,Values=$INSTANCE_ID" "Name=key,Values=FileTableItemIndex" --query "Tags[0].Value" --output text)
+        echo "FileTable Item Index: $FILE_TABLE_ITEM_INDEX"
 
         # Execute the script
         python3 s3_script.py
