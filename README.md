@@ -46,40 +46,32 @@ Here are some more screenshots showing the flow of data:
 <img width="1442" alt="Screen Shot 2024-07-07 at 11 42 35 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/52ef1600-2af6-45b7-b106-41b478f48f3b">
 
 Shot of console showing successful write to S3 and DynamoDB.
-&nbsp;
+<br><br>
 
 <img width="1461" alt="Screen Shot 2024-07-07 at 11 43 07 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/748fef26-3e5f-4d6d-9ef5-26d480f862e9">
 
 Sucessful write to DynamoDB of unprocessed data spins up a new ec2 instance.
 <br><br>
 
-
-
 <img width="1664" alt="Screen Shot 2024-07-07 at 11 32 00 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/c3159fb2-8b70-4a9a-8f23-77066fbb0c7a">
 
 Here, on a previous submission, we paused ec2 termination so we could examine the ec2 logs.  In this case, we see evidence that the python script is downloaded from s3 and executed successfully.
-
-
-
+<br><br>
 
 <img width="1379" alt="Screen Shot 2024-07-07 at 11 44 58 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/36b86a9c-b70d-4508-8e10-af1373de4749">
 
 Before executing, in S3 there was only s3_script.py.  After execution there are 2 additional entries as expected.
-
-
-
+<br><br>
 
 <img width="1309" alt="Screen Shot 2024-07-07 at 11 44 37 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/7c27da40-9dec-4b11-b97b-b099ac300929">
 
 After execution, DynamoDB table fovus_table has 2 entries, as expected.
-
-
-
+<br><br>
 
 <img width="1491" alt="Screen Shot 2024-07-07 at 11 43 57 PM" src="https://github.com/farrerm/fovus_code_challenge/assets/23005392/bf973259-bc51-42ae-a47e-d8b2fb8cd413">
 
 Following execution, ec2 instance writes data to DynamoDB Completion Table and is terminated by Lambda function.
-
+<br><br>
 
 
 
