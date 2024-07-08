@@ -22,7 +22,7 @@ cdk_nu/terminate_ec2
 
 cdk_nu/write_to_db
 
-The code for the actual Lambda itself is in a file called index.ts for each Lambda, i.e. cdk_nu/ec2_launcher/index.ts.
+The code for the actual Lambda itself is in a file called index.ts for each Lambda, e.g. cdk_nu/ec2_launcher/index.ts.
 
 I will describe the flow.
 
