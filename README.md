@@ -75,10 +75,10 @@ Following execution, ec2 instance writes data to DynamoDB Completion Table and i
 
 For local installation and testing, keep in mind that certain values such as table names are hardcode, and would need to be replaced as appropriate.  This project was written to run on my own AWS infrastructure, and I have not tested its portability by running it on other infrastructure.
 
-Nevertheless, I would generally describe project dependencies as follows:
-cdk stack: node.js and TypeScript.
-frontend: ReactJS
-Lambda folders: node.js and TypeScript.  
+Nevertheless, I would generally describe project dependencies as follows:  
+cdk stack: node.js and TypeScript.  
+frontend: ReactJS  
+Lambda folders: node.js and TypeScript.      
 
 For sources, I made extensive use of Google, Stack Overflow and AWS documentation.
 
