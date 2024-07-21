@@ -53,7 +53,7 @@ export class CdkNuStack extends cdk.Stack {
     const presignedUrlLambda = new NodejsFunction(this, 'PresignedUrlLambda', {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler',
-      entry: path.join(__dirname, '../presigned_urls/index.ts'),
+      entry: path.join(__dirname, '../lambdas/presigned_urls.ts'),
       environment: {
         BUCKET_NAME: bucket.bucketName,
         ALLOWED_ORIGIN: 'http://localhost:3000', // or your production frontend URL
@@ -112,7 +112,7 @@ export class CdkNuStack extends cdk.Stack {
     const writeToDbLambda = new NodejsFunction(this, 'WriteToDbLambda', {
       runtime: lambda.Runtime.NODEJS_20_X,
       handler: 'handler',
-      entry: path.join(__dirname, '../write_to_db/index.ts'), // Adjust this path as needed
+      entry: path.join(__dirname, '../lambdas/write_to_db.ts'), // Adjust this path as needed
       environment: {
         TABLE_NAME: fileTable.tableName,
       },
@@ -279,7 +279,7 @@ export class CdkNuStack extends cdk.Stack {
 
     // 3. Create Lambda function to process DynamoDB events and launch EC2
     const ec2LauncherFunction = new NodejsFunction(this, 'EC2LauncherFunction', {
-      entry: path.join(__dirname, '../ec2_launcher/index.ts'),
+      entry: path.join(__dirname, '../lambdas/ec2_launcher.ts'),
       handler: 'handler',
       runtime: lambda.Runtime.NODEJS_20_X,
       environment: {
@@ -309,7 +309,7 @@ export class CdkNuStack extends cdk.Stack {
 
     // Create Lambda function to terminate EC2
     const ec2TerminatorFunction = new NodejsFunction(this, 'EC2TerminatorFunction', {
-      entry: path.join(__dirname, '../terminate_ec2/index.ts'),
+      entry: path.join(__dirname, '../lambdas/terminate_ec2.ts'),
       handler: 'handler',
       runtime: lambda.Runtime.NODEJS_20_X,
       timeout: cdk.Duration.minutes(3),
